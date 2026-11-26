@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自建「AI 模拟用户焦点小组」产品方案</title>
+<style>
+  :root{
+    --bg:#f6f7fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--line:#e5e7eb;
+    --pri:#4f46e5;--pri-soft:#eef2ff;--ok:#059669;--ok-soft:#ecfdf5;--warn:#d97706;--warn-soft:#fffbeb;--red:#dc2626;--red-soft:#fef2f2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+  header{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;padding:56px 0 48px}
+  header h1{margin:0 0 10px;font-size:32px;line-height:1.3}
+  header p{margin:0;opacity:.9;font-size:16px}
+  .tags{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px}
+  .tags span{background:rgba(255,255,255,.18);padding:4px 12px;border-radius:999px;font-size:13px}
+  nav{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.95);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;gap:4px;overflow-x:auto;padding-top:8px;padding-bottom:8px}
+  nav a{white-space:nowrap;color:var(--muted);text-decoration:none;font-size:14px;padding:6px 12px;border-radius:8px}
+  nav a:hover{background:var(--pri-soft);color:var(--pri)}
+  section{padding:36px 0 8px}
+  h2{font-size:24px;margin:0 0 18px;display:flex;align-items:center;gap:10px}
+  h2 .no{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:var(--pri);color:#fff;font-size:16px}
+  h3{font-size:18px;margin:0 0 8px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  ul{padding-left:20px;margin:6px 0}
+  li{margin:4px 0}
+  .muted{color:var(--muted)}
+  .badge{display:inline-block;font-size:12px;padding:2px 10px;border-radius:999px;background:var(--pri-soft);color:var(--pri);font-weight:600;margin-bottom:8px}
+  .tip{border-left:4px solid var(--pri);background:var(--pri-soft);padding:12px 16px;border-radius:8px;margin-top:12px}
+  .tip.ok{border-color:var(--ok);background:var(--ok-soft)}
+  .tip.warn{border-color:var(--warn);background:var(--warn-soft)}
+  /* flow */
+  .flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin:8px 0 4px}
+  .flow .step{flex:1 1 150px;background:var(--card);border:2px solid var(--pri);border-radius:12px;padding:14px;text-align:center}
+  .flow .step b{display:block;color:var(--pri);font-size:15px}
+  .flow .step small{color:var(--muted)}
+  .flow .arrow{display:flex;align-items:center;color:var(--pri);font-size:22px;font-weight:700}
+  .io{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+  .io div{flex:1 1 260px;background:#f9fafb;border:1px dashed #cbd5e1;border-radius:10px;padding:10px 14px;font-size:14px}
+  /* loop */
+  .loop{counter-reset:s;list-style:none;padding:0}
+  .loop li{counter-increment:s;position:relative;padding:10px 12px 10px 48px;border-bottom:1px dashed var(--line)}
+  .loop li:last-child{border-bottom:none}
+  .loop li::before{content:counter(s);position:absolute;left:8px;top:10px;width:28px;height:28px;border-radius:50%;background:var(--pri-soft);color:var(--pri);font-weight:700;display:flex;align-items:center;justify-content:center}
+  pre{background:#0f172a;color:#e2e8f0;padding:16px;border-radius:10px;overflow:auto;font-size:13px;line-height:1.6;margin:10px 0 0}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  table{width:100%;border-collapse:collapse;font-size:14px;background:var(--card);border-radius:12px;overflow:hidden}
+  th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{background:#f3f4f6;font-weight:600}
+  tr:last-child td{border-bottom:none}
+  .tbl{border:1px solid var(--line);border-radius:12px;overflow-x:auto}
+  .roadmap{position:relative;padding-left:28px}
+  .roadmap::before{content:"";position:absolute;left:10px;top:6px;bottom:6px;width:3px;background:var(--pri-soft);border-radius:3px}
+  .roadmap .card{position:relative}
+  .roadmap .card::before{content:"";position:absolute;left:-24px;top:26px;width:14px;height:14px;border-radius:50%;background:var(--pri);border:3px solid #fff;box-shadow:0 0 0 2px var(--pri)}
+  .stack{display:flex;flex-wrap:wrap;gap:8px}
+  .stack span{background:#f3f4f6;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:14px}
+  .stack span b{color:var(--pri)}
+  footer{padding:36px 0 48px;color:var(--muted);font-size:13px;text-align:center}
+  @media (max-width:640px){header h1{font-size:24px}.flow .arrow{transform:rotate(90deg);width:100%;justify-content:center}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>自建「AI 模拟用户焦点小组」产品方案</h1>
+    <p>多个 AI 扮演不同画像的用户，再加一个 AI 主持人，围绕一个产品展开讨论，最后输出产品优化方向和推广策略。</p>
+    <div class="tags"><span>示例场景：Javis 用户访谈</span><span>多 Agent 角色扮演</span><span>焦点小组</span><span>市场调研</span></div>
+  </div>
+</header>
+
+<nav>
+  <div class="wrap">
+    <a href="#arch">一、整体结构</a>
+    <a href="#modules">二、四个模块</a>
+    <a href="#hard">三、难点与对策</a>
+    <a href="#roadmap">四、分三步做</a>
+    <a href="#stack">五、技术选型</a>
+    <a href="#diff">六、差异化</a>
+    <a href="#next">七、下一步</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- 1 -->
+<section id="arch">
+  <h2><span class="no">1</span>整体结构</h2>
+  <div class="card">
+    <div class="io">
+      <div><b>输入：</b>产品资料（Javis 介绍、功能、价格）+ 研究目标（例如“找出高净值用户最在意的功能和获客渠道”）</div>
+      <div><b>输出：</b>完整讨论记录 + 产品优化建议 + 推广策略（每条结论都可追溯到原话）</div>
+    </div>
+    <div class="flow">
+      <div class="step"><b>① 画像生成</b><small>5–8 个差异明显的虚拟用户</small></div>
+      <div class="arrow">→</div>
+      <div class="step"><b>② 访谈提纲</b><small>主持人按研究目标生成</small></div>
+      <div class="arrow">→</div>
+      <div class="step"><b>③ 讨论引擎</b><small>主持人 + N 个用户多轮讨论</small></div>
+      <div class="arrow">→</div>
+      <div class="step"><b>④ 分析报告</b><small>优化方向 + 推广策略</small></div>
+    </div>
+    <div class="tip">整个产品就是一个调度程序，反复调用大模型 API（Claude、GPT、DeepSeek 等），每个角色用各自的提示词，加上一个控制<b>谁先说、说几轮</b>的流程。</div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section id="modules">
+  <h2><span class="no">2</span>四个模块怎么做</h2>
+  <div class="grid g2">
+    <div class="card">
+      <span class="badge">模块 ①</span>
+      <h3>画像生成</h3>
+      <ul>
+        <li>每个画像用一份 JSON 描述：年龄、职业、收入、使用场景、痛点、现在用的替代品、性格（挑剔还是随和）、价格敏感度、获取信息的渠道。</li>
+        <li>来源：用户手写；或者由 AI 根据“目标人群描述”一次生成多个画像；进阶做法是用真实的问卷、评论、社交媒体数据生成，结果更可信。</li>
+        <li><b>关键：画像之间差别要大。</b>刻意放进反对者、价格敏感型、竞品忠实用户，不能全是会买的人。</li>
+      </ul>
+<pre><code>{
+  "name": "王总", "age": 48, "role": "制造业企业主",
+  "income": "年收入 500 万+", "scenario": "出差多，日程和家务靠秘书",
+  "pain": ["信息太杂", "不放心把隐私交给 App"],
+  "alternatives": ["私人秘书", "微信备忘"],
+  "personality": "挑剔、讲结果、没耐心",
+  "price_sensitivity": "低", "channels": ["圈子推荐", "商学院同学"]
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <span class="badge">模块 ②</span>
+      <h3>主持人 Agent</h3>
+      <ul>
+        <li>输入产品介绍和研究目标，先生成访谈提纲：<br><span class="muted">暖场 → 使用现状 → 痛点 → 看产品概念 → 付费意愿 → 推荐意愿</span></li>
+        <li>讨论中，主持人每一轮决定三件事：
+          <ul>
+            <li>下一个问题问什么</li>
+            <li>点谁回答</li>
+            <li>要不要追问分歧（“A 说很好用，B 不同意，B 你具体说说”）</li>
+          </ul>
+        </li>
+        <li><b>保持中立</b>，不能引导用户说好话。</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <span class="badge">模块 ③ · 核心</span>
+      <h3>讨论引擎</h3>
+      <p class="muted" style="margin:0">维护一份全场共享的讨论记录，每个用户 Agent 发言前都能看到前面所有人说了什么。</p>
+      <ol class="loop">
+        <li>主持人提问</li>
+        <li>每个用户先<b>单独、不看别人地</b>作答，减少互相附和</li>
+        <li>公开所有回答，被点到的用户依次回应、反驳</li>
+        <li>主持人判断：追问分歧，还是进入下一题</li>
+        <li>提纲走完或到设定轮数后结束</li>
+      </ol>
+      <div class="tip warn">每个用户的提示词都要写死：“你是×××，始终按这个人的身份、认知水平和说话方式发言，不知道的就说不知道，不要客气、不要总是赞同。”</div>
+    </div>
+
+    <div class="card">
+      <span class="badge">模块 ④</span>
+      <h3>分析与报告</h3>
+      <p class="muted" style="margin:0 0 6px">讨论结束后，交给一个独立的“分析师 Agent”读完整份记录，输出：</p>
+      <ul>
+        <li>共识点、分歧点，<b>按不同画像</b>分别列出各自的态度</li>
+        <li>痛点排序 → <b>产品优化方向</b></li>
+        <li>购买理由和顾虑、信息渠道、触动他们的话术 → <b>推广策略</b></li>
+        <li>每条结论都标注出自哪段原话，方便追溯</li>
+      </ul>
+      <div class="tip ok">用 JSON 结构化输出，再渲染成网页报告或 PDF。</div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section id="hard">
+  <h2><span class="no">3</span>最难的几个问题（决定产品好不好用）</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th style="width:16%">问题</th><th style="width:30%">表现</th><th>对策</th></tr></thead>
+      <tbody>
+        <tr><td><b>大家都太客气</b></td><td>所有人都说“挺好的”</td><td>提示词里要求说真话、给负面意见设配额；先单独作答再讨论；加入反对者画像</td></tr>
+        <tr><td><b>画像说着说着变样</b></td><td>说到后面口吻全一样</td><td>每轮都重新注入画像设定；不同角色用不同模型或不同 temperature</td></tr>
+        <tr><td><b>结论是编的</b></td><td>报告里出现没人说过的观点</td><td>报告必须引用原话，并用程序检查引用是否真实存在</td></tr>
+        <tr><td><b>结果不稳定</b></td><td>跑两次结论不一样</td><td>同一场讨论跑 3–5 次，只采纳反复出现的结论</td></tr>
+        <tr><td><b>成本高</b></td><td>8 个人 × 20 轮，消耗大量 token</td><td>历史记录做摘要压缩；用户发言用便宜的模型，主持人和分析师用强模型</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="tip warn" style="margin-top:16px">这类模拟结果适合用来<b>找方向、列假设</b>，不能代替真实用户访谈。关键结论最好再找少量真人验证。</div>
+</section>
+
+<!-- 4 -->
+<section id="roadmap">
+  <h2><span class="no">4</span>建议分三步做</h2>
+  <div class="roadmap">
+    <div class="card">
+      <span class="badge">第 1 步 · 原型 · 1–2 天</span>
+      <h3>验证结果有没有价值</h3>
+      <ul>
+        <li>一个 Python 脚本：3 个画像 + 1 个主持人 + 5 道题，输出 Markdown 报告。</li>
+        <li>可以直接用 Microsoft TinyTroupe（开源，自带焦点小组示例），也可以自己写，自己写大约 300 行。</li>
+        <li>用 Javis 跑一次，看看结论有没有价值。</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="badge">第 2 步 · MVP · 1–2 周</span>
+      <h3>做成可用的网页</h3>
+      <ul>
+        <li>用户可以输入产品信息、编辑画像</li>
+        <li>实时观看讨论（逐字流式输出）</li>
+        <li>讨论结束后生成报告</li>
+        <li>用数据库保存项目和讨论记录</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="badge">第 3 步 · 产品化</span>
+      <h3>做成能卖的产品</h3>
+      <ul>
+        <li>画像库（按行业预置）</li>
+        <li>导入真实数据（问卷、评论、社交媒体）生成画像</li>
+        <li>多次运行汇总，提高结论稳定性</li>
+        <li>导出 PPT、多语言、账号体系与付费</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section id="stack">
+  <h2><span class="no">5</span>技术选型参考</h2>
+  <div class="card">
+    <div class="stack">
+      <span><b>前端</b>　Next.js / React</span>
+      <span><b>后端</b>　Python（FastAPI）或 Node</span>
+      <span><b>调度</b>　自己写循环，或用 AG2 的 discussion 模式</span>
+      <span><b>大模型</b>　Claude / GPT / DeepSeek，通过 API 调用</span>
+      <span><b>数据库</b>　Postgres 或 SQLite</span>
+    </div>
+    <p class="muted" style="margin:14px 0 4px">可参考的开源项目：</p>
+    <ul>
+      <li><b>Microsoft TinyTroupe</b>：原生支持焦点小组，有市场调研、广告评估示例（Python，MIT 许可） https://github.com/microsoft/TinyTroupe </li>
+      <li><b>Google DeepMind Concordia</b>：自带“访谈主持人”组件，更严谨，上手难度更高 https://github.com/google-deepmind/concordia </li>
+      <li><b>AG2</b>：多智能体工程框架，适合做成线上服务 https://github.com/ag2ai/ag2 </li>
+    </ul>
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="diff">
+  <h2><span class="no">6</span>差异化方向（相对现有产品）</h2>
+  <div class="grid g3">
+    <div class="card">
+      <h3>🇨🇳 中文场景深耕</h3>
+      <p>现有产品里只有 atypica 是原生中文。可以做中国用户画像库，加上小红书、抖音风格的推广建议。</p>
+    </div>
+    <div class="card">
+      <h3>✅ 结果可以验证</h3>
+      <p>给出“模拟结论 vs 真实用户调研”的对比，这是用户最在意的可信度问题。</p>
+    </div>
+    <div class="card">
+      <h3>🚀 直接接执行</h3>
+      <p>报告直接生成广告文案、落地页卖点、产品需求清单，从洞察直接到行动。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section id="next">
+  <h2><span class="no">7</span>下一步</h2>
+  <div class="card">
+    <p style="margin-top:0">建议先做第 1 步原型，用 Javis 跑一场模拟访谈，讨论题分两类：</p>
+    <ul>
+      <li><b>产品优化方向</b>：使用痛点、功能期望、现在用什么替代</li>
+      <li><b>推广策略</b>：信息来源、愿意付多少钱、什么情况下会推荐给别人</li>
+    </ul>
+    <p class="muted" style="margin-bottom:0">原型结论有价值，再投入做 MVP 网页。</p>
+  </div>
+</section>
+
+</main>
+
+<footer>自建「AI 模拟用户焦点小组」产品方案 · 2026-11</footer>
+
+</body>
+</html>
